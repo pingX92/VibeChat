@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vibechat.model.Message
 
 @Composable
-fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
+fun ChatScreen(viewModel: ChatViewModel) {
     val messages by viewModel.messages.collectAsState()
 
     var inputText by remember { mutableStateOf(TextFieldValue("")) }

@@ -2,12 +2,16 @@ package com.example.vibechat.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vibechat.data.repository.ChatRepository
 import com.example.vibechat.model.Message
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ChatViewModel : ViewModel() {
+class ChatViewModel(
+    private val repository: ChatRepository
+) : ViewModel() {
+
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
 
@@ -16,8 +20,11 @@ class ChatViewModel : ViewModel() {
         _messages.value = newList
 
         viewModelScope.launch {
-            //will use networkcalls, so we need to use coroutines here
-            val reply = "GPT reply placeholder"
+            val reply = try {
+                repository.sendMessage(userInput)
+            } catch (e: Exception) {
+                "Error: ${e.message}"
+            }
             _messages.value = _messages.value + Message(reply, false)
         }
     }
