@@ -24,6 +24,11 @@ data class Choice(
     val message: MessageParam
 )
 
+data class ContentWithEmotionResponse(
+    val message: String,
+    val emotion: String
+)
+
 interface OpenAiApi {
     @POST("openai/deployments/{deployment}/chat/completions")
     @Headers("Content-Type: application/json")

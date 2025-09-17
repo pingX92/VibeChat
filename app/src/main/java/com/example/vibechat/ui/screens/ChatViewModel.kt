@@ -1,5 +1,6 @@
 package com.example.vibechat.ui.screens
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vibechat.data.repository.ChatRepository
@@ -15,17 +16,28 @@ class ChatViewModel(
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
 
+    private val _currentEmotion = MutableStateFlow("neutral")
+    val currentEmotion: StateFlow<String> = _currentEmotion
+
     fun sendMessage(userInput: String) {
         val newList = _messages.value + Message(userInput, true)
         _messages.value = newList
 
+
         viewModelScope.launch {
             val reply = try {
-                repository.sendMessage(userInput)
+                repository.sendMessage(userInput) // 返回 EmotionResponse
             } catch (e: Exception) {
-                "Error: ${e.message}"
+                null
             }
-            _messages.value = _messages.value + Message(reply, false)
+
+            if (reply != null) {
+                _currentEmotion.value = reply.emotion
+                _messages.value = _messages.value + Message(reply.message, isUser = false)
+            } else {
+                _messages.value = _messages.value + Message("Error: no response", isUser = false)
+                _currentEmotion.value = "neutral"
+            }
         }
     }
 }

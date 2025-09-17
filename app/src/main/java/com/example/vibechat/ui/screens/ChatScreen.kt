@@ -1,5 +1,8 @@
 package com.example.vibechat.ui.screens
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,16 +32,35 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vibechat.model.Message
 
+
+val emotionBackgroundColors = mapOf(
+    "happy" to Color(0xFFFFFDE7),
+    "sad" to Color(0xFFE3F2FD),
+    "angry" to Color(0xFFFFEBEE),
+    "excited" to Color(0xFFFFF3E0),
+    "fearful" to Color(0xFFF3E5F5),
+    "neutral" to Color(0xFFF2F2F2)
+)
+
+val emotionBubbleColors = mapOf(
+    "happy" to Color(0xFFFFF9C4),
+    "sad" to Color(0xFFBBDEFB),
+    "angry" to Color(0xFFFFCDD2),
+    "excited" to Color(0xFFFFCCBC),
+    "fearful" to Color(0xFFE1BEE7),
+    "neutral" to Color.White
+)
+
 @Composable
 fun ChatScreen(viewModel: ChatViewModel) {
     val messages by viewModel.messages.collectAsState()
-
+    val emotion by viewModel.currentEmotion.collectAsState()
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(emotionBackgroundColors[emotion] ?: Color(0xFFF2F2F2))
     ) {
         LazyColumn(
             modifier = Modifier
@@ -47,7 +69,7 @@ fun ChatScreen(viewModel: ChatViewModel) {
             reverseLayout = true
         ) {
             items(messages.reversed()) { msg ->
-                MessageBubble(msg)
+                MessageBubble(msg, emotion)
             }
         }
 
@@ -88,8 +110,9 @@ fun ChatScreen(viewModel: ChatViewModel) {
 }
 
 @Composable
-fun MessageBubble(message: Message) {
-    val bubbleColor = if (message.isUser) Color(0xFFDCF8C6) else Color.White
+fun MessageBubble(message: Message, currentEmotion: String) {
+    val bubbleColor = if (message.isUser) Color(0xFFDCF8C6)
+        else emotionBubbleColors[currentEmotion] ?: Color.White
     val alignment = if (message.isUser) Alignment.CenterEnd else Alignment.CenterStart
 
     Box(
@@ -101,7 +124,13 @@ fun MessageBubble(message: Message) {
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = bubbleColor,
-            shadowElevation = 2.dp
+            shadowElevation = 2.dp,
+            modifier = Modifier.animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
         ) {
             Text(
                 text = message.text,
