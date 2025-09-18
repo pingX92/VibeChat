@@ -3,7 +3,7 @@ package com.example.vibechat.ui.screens
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,10 +27,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.vibechat.model.Message
+import com.example.vibechat.R
 
 
 val emotionBackgroundColors = mapOf(
@@ -57,54 +64,90 @@ fun ChatScreen(viewModel: ChatViewModel) {
     val emotion by viewModel.currentEmotion.collectAsState()
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(emotionBackgroundColors[emotion] ?: Color(0xFFF2F2F2))
-    ) {
-        LazyColumn(
+    val backgroundRes = when (emotion) {
+        "happy" -> R.drawable.happy
+        "sad" -> R.drawable.sad
+        "angry" -> R.drawable.angry
+        "excited" -> R.drawable.excited
+        "fearful" -> R.drawable.fearful
+        else -> R.drawable.neutral
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .padding(8.dp),
-            reverseLayout = true
+                .fillMaxSize()
+                //.background(emotionBackgroundColors[emotion] ?: Color(0xFFF2F2F2))
         ) {
-            items(messages.reversed()) { msg ->
-                MessageBubble(msg, emotion)
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
+                reverseLayout = true
+            ) {
+                items(messages.reversed()) { msg ->
+                    MessageBubble(msg, emotion)
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = inputText,
+                    onValueChange = { inputText = it },
+                    modifier = Modifier.weight(1f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFE0F7FA),
+                        unfocusedContainerColor = Color(0xFFE0F7FA),
+                        disabledContainerColor = Color.LightGray,
+                        cursorColor = Color.Blue,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                )
+                Button(
+                    onClick = {
+                        if (inputText.text.isNotBlank()) {
+                            viewModel.sendMessage(inputText.text)
+                            inputText = TextFieldValue("")
+                        }
+                    },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Send")
+                }
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = inputText,
-                onValueChange = { inputText = it },
-                modifier = Modifier.weight(1f),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE0F7FA),
-                    unfocusedContainerColor = Color(0xFFE0F7FA),
-                    disabledContainerColor = Color.LightGray,
-                    cursorColor = Color.Blue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
+        // Lottie animation
+        if (emotion == "happy") {
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.celebrate))
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // 无限循环
+                isPlaying = true
             )
-            Button(
-                onClick = {
-                    if (inputText.text.isNotBlank()) {
-                        viewModel.sendMessage(inputText.text)
-                        inputText = TextFieldValue("")
-                    }
-                },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Text("Send")
-            }
+
+            LottieAnimation(
+                composition = composition,
+                progress = progress,
+                modifier = Modifier.fillMaxSize(), // 占满整个屏幕
+                contentScale = ContentScale.Crop // 拉伸覆盖整个屏幕
+            )
         }
     }
 }

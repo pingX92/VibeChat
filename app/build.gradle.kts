@@ -73,4 +73,7 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.gson)
+
+    //lottie
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
 }
