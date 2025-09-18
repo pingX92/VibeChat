@@ -19,6 +19,9 @@ class ChatViewModel(
     private val _currentEmotion = MutableStateFlow("neutral")
     val currentEmotion: StateFlow<String> = _currentEmotion
 
+    private val _currentHoliday = MutableStateFlow<String?>(null)
+    val currentHoliday: StateFlow<String?> = _currentHoliday
+
     fun sendMessage(userInput: String) {
         val newList = _messages.value + Message(userInput, true)
         _messages.value = newList
@@ -33,10 +36,14 @@ class ChatViewModel(
 
             if (reply != null) {
                 _currentEmotion.value = reply.emotion
+                _currentHoliday.value = reply.holiday
                 _messages.value = _messages.value + Message(reply.message, isUser = false)
+                Log.d("test>>>ChatViewModel", "AI Reply: ${reply.message}, Emotion: ${reply.emotion}, Holiday: ${reply.holiday}")
+
             } else {
                 _messages.value = _messages.value + Message("Error: no response", isUser = false)
                 _currentEmotion.value = "neutral"
+                _currentHoliday.value = null
             }
         }
     }

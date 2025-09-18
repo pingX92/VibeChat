@@ -24,9 +24,10 @@ data class Choice(
     val message: MessageParam
 )
 
-data class ContentWithEmotionResponse(
+data class ContentWithResponse(
     val message: String,
-    val emotion: String
+    val emotion: String,
+    val holiday: String?
 )
 
 interface OpenAiApi {

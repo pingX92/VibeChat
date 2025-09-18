@@ -1,8 +1,11 @@
 package com.example.vibechat.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +43,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.vibechat.model.Message
 import com.example.vibechat.R
+import kotlinx.coroutines.NonCancellable.key
 
 
 val emotionBackgroundColors = mapOf(
@@ -62,6 +68,7 @@ val emotionBubbleColors = mapOf(
 fun ChatScreen(viewModel: ChatViewModel) {
     val messages by viewModel.messages.collectAsState()
     val emotion by viewModel.currentEmotion.collectAsState()
+    val holiday by viewModel.currentHoliday.collectAsState()
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
 
     val backgroundRes = when (emotion) {
@@ -134,21 +141,7 @@ fun ChatScreen(viewModel: ChatViewModel) {
         }
 
         // Lottie animation
-        if (emotion == "happy") {
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.celebrate))
-            val progress by animateLottieCompositionAsState(
-                composition = composition,
-                iterations = LottieConstants.IterateForever, // 无限循环
-                isPlaying = true
-            )
-
-            LottieAnimation(
-                composition = composition,
-                progress = progress,
-                modifier = Modifier.fillMaxSize(), // 占满整个屏幕
-                contentScale = ContentScale.Crop // 拉伸覆盖整个屏幕
-            )
-        }
+        HolidayAnimation(holiday = holiday?.lowercase())
     }
 }
 
@@ -179,6 +172,47 @@ fun MessageBubble(message: Message, currentEmotion: String) {
                 text = message.text,
                 modifier = Modifier.padding(8.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun HolidayAnimation(holiday: String?) {
+    val holidayAnimations = mapOf(
+        "christmas" to R.raw.christmas,
+        "new year" to R.raw.newyear,
+        "lunar new year" to R.raw.lunar_new_year,
+        "diwali" to R.raw.diwali,
+        "thanksgiving" to R.raw.thanksgiving,
+        "halloween" to R.raw.halloween,
+        "pride" to R.raw.pride,
+        "valentine’s day" to R.raw.valentine
+    )
+
+    val resId = holiday?.lowercase()?.let { holidayAnimations[it] }
+
+    if (resId != null) {
+        key(resId) {
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resId))
+            val lottieState = animateLottieCompositionAsState(
+                composition = composition,
+                iterations = 2,
+                isPlaying = true
+            )
+
+            val visible = lottieState.progress < 0.99f
+
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = lottieState.progress,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
