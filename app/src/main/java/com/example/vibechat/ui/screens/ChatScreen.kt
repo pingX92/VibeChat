@@ -36,15 +36,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.vibechat.model.Message
 import com.example.vibechat.R
-import kotlinx.coroutines.NonCancellable.key
-
 
 val emotionBackgroundColors = mapOf(
     "happy" to Color(0xFFFFFDE7),
@@ -65,7 +63,7 @@ val emotionBubbleColors = mapOf(
 )
 
 @Composable
-fun ChatScreen(viewModel: ChatViewModel) {
+fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
     val messages by viewModel.messages.collectAsState()
     val emotion by viewModel.currentEmotion.collectAsState()
     val holiday by viewModel.currentHoliday.collectAsState()
